@@ -39,7 +39,7 @@ def main(argv):
 	payload = {'data': pstmessage}
 
 	r = requests.post(url, data=payload)
-	print 'response: ',r.text[0:2]
+	print 'response: ',r.text
 	print 'status: ',r.status_code
 
 	if r.status_code==200 and r.text[0:2]=="OK":
