@@ -1,4 +1,4 @@
-//V2018-11-29 23:00
+//V2018-12-09 23:00
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
@@ -24,8 +24,10 @@ char* ssid = "RA22SL";
 char* password = "Sukoro70";
 
 // HTTP Post connections
-String http_data="http://bergulix.dyndns.org:8099/m_data.php";
-String http_imu="http://bergulix.dyndns.org:8099/m_imu.php";
+String http_data="http://bergulix.dyndns.org:8100/m_data.php";
+String http_imu="http://bergulix.dyndns.org:8100/m_imu.php";
+
+int NoOfMes = 500;
 
 typedef union udpservermessage
 {
@@ -160,7 +162,7 @@ if (wifiConnected) {
             SendUdpMessage(message);
 
             SensorSetup();
-            Mesurement();
+            Mesurement(NoOfMes);
             SendData(id);
           } else {
             Serial.println("Imu head data upload failed");
@@ -305,7 +307,7 @@ void SensorSetup(){
   SendUdpMessage(message);
 }
 
-void Mesurement(){
+void Mesurement(int NopOfMes){
   String message;
   // Start the SPI Flash Files System
   SPIFFS.begin();
@@ -325,7 +327,7 @@ void Mesurement(){
   message = HostName+"---Measurement start time"+String(time0);
   SendUdpMessage(message);
 
-  for (count = 0; count < 1000; count++) {
+  for (count = 0; count < NoOfMes; count++) {
     error = MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, 6);
     time1 = millis();
     SWAP (accel_t_gyro.reg.x_accel_h, accel_t_gyro.reg.x_accel_l);
