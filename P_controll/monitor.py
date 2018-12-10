@@ -1,3 +1,7 @@
+#!/usr/bin/python
+
+#Ver: 2018-12-10 22:52
+
 import socket
 import time
 from time import gmtime, strftime
