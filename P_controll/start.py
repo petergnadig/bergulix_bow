@@ -35,7 +35,7 @@ def main(argv):
 	# Post header to database - response the headerb id if succeed
 	pstmessage=t+","+bow+","+person+","+lat+","+lon
 	print 'Post message :', pstmessage
-	url = 'http://bergulix.dyndns.org:8099/m_head.php'
+	url = 'http://bergulix.dyndns.org:8100/m_head.php'
 	payload = {'data': pstmessage}
 
 	r = requests.post(url, data=payload)
