@@ -1,5 +1,6 @@
-//V2018-12-10 23:00
-#include <ESP8266WiFi.h>
+//V2018-12-11 08:20
+
+// #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266HTTPClient.h>
