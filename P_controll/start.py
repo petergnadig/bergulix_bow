@@ -9,6 +9,8 @@ from datetime import datetime
 import sys, getopt
 import requests # pip install requests  /// https://stackoverflow.com/questions/4476373/simple-url-get-post-function-in-python
 
+url = 'http://bergulix.dyndns.org:8100/bow/web/m_head.php'
+
 def main(argv):
 	bow = ''
 	person = ''
@@ -43,7 +45,6 @@ def main(argv):
 		# Post header to database - response the headerb id if succeed
 		pstmessage=t+","+bow+","+person+","+lat+","+lon
 		print 'Post message :', pstmessage
-		url = 'http://bergulix.dyndns.org:8100/m_head.php'
 		payload = {'data': pstmessage}
 
 		r = requests.post(url, data=payload)

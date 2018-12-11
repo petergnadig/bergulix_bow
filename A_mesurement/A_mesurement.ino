@@ -24,8 +24,8 @@ char* ssid = "RA22SL";
 char* password = "Sukoro70";
 
 // HTTP Post connections
-String http_data="http://bergulix.dyndns.org:8100/m_data.php";
-String http_imu="http://bergulix.dyndns.org:8100/m_imu.php";
+String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
+String http_imu="http://bergulix.dyndns.org:8100/bow/web/m_imu.php";
 
 int NoOfMes = 500;
 
