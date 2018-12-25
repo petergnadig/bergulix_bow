@@ -113,11 +113,13 @@ void setup() {
 
   
   // Initialise wifi connection
-  wifiConnected = connectWifi(ssid, password, broadcast);
+  wifiConnected = connectWifi(ssid, password);
   if (wifiConnected) {
+    Serial.print("Broadcast address: ");
+    Serial.println(broadcast);
     udpConnected = connectUDP(udpPort);
     }
-
+    
   // Report status as UDP message
   SendPacket(broadcast, udpPort, HostNameC, sizeof(HostNameC));
 
@@ -178,7 +180,7 @@ if (wifiConnected) {
 }
 
 // connect to wifi – returns true if successful or false if not
-boolean connectWifi(char* ssid, char* password, IPAddress broadcast) {
+boolean connectWifi(char* ssid, char* password) {
   boolean state = true;
   int i = 0;
   IPAddress iplocal;
@@ -211,8 +213,6 @@ boolean connectWifi(char* ssid, char* password, IPAddress broadcast) {
     broadcast[1] = iplocal[1] | ( ~ ipnetmask[1] );
     broadcast[2] = iplocal[2] | ( ~ ipnetmask[2] );
     broadcast[3] = iplocal[3] | ( ~ ipnetmask[3] );    
-    Serial.print("Broadcast address: ");
-    Serial.println(broadcast);
   }
   else {
     Serial.println("");
@@ -224,10 +224,7 @@ boolean connectWifi(char* ssid, char* password, IPAddress broadcast) {
 // connect to UDP – returns true if successful or false if not
 boolean connectUDP(unsigned port) {
   boolean state = false;
-
-  Serial.println("");
   Serial.println("Connecting to UDP");
-
   if (UDP.begin(port) == 1) {
     Serial.println("Connection successful");
     state = true;
