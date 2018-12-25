@@ -13,7 +13,7 @@ $data = $dt;
 //var_dump($data);
 
 try {
-	$str_conn = "mysql:host=bx01.local:3306;dbname=bx_bow_01";
+	$str_conn = "mysql:host=bergulix.dyndns.org:3306;dbname=bx_bow_01";
 	$dbh = new PDO($str_conn, 'msql1', 'Qasde321');
 	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$dbh->beginTransaction();    	
