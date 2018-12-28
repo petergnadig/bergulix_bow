@@ -1,4 +1,4 @@
-//V2018-12-11 08:20
+//V2018-12-28 09:00
 
 // #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -28,7 +28,7 @@ char* password = "Sukoro70";
 String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
 String http_imu="http://bergulix.dyndns.org:8100/bow/web/m_imu.php";
 
-int NoOfMes = 500;
+int NoOfMes = 5000;
 
 typedef union udpservermessage
 {
@@ -66,10 +66,6 @@ typedef union accel_t_gyro_union
     int16_t z_accel;
   } value;
 };
-
-
-String getContentType(String filename); // convert the file extension to the MIME type
-bool handleFileRead(String path);       // send the right file to the client (if it exists)
 
 int error;
 uint8_t c;
@@ -137,7 +133,7 @@ void setup() {
 
 void loop() {
 
-int id=0;
+int imu_db_id=0;
 if (wifiConnected) {
     if (udpConnected) {
       //int packetSize = UDP.parsePacket();
@@ -159,19 +155,19 @@ if (wifiConnected) {
           Serial.println("-----MERES-----");
        
           //Write mesurement header
-          id=SendImu(packetBuffer.value.id, HostNameC);
-          if (id>0) {
-            String message = HostName+"---Measurement Start, id="+String(id);
+          imu_db_id=SendImu(packetBuffer.value.id, HostNameC);
+          if (imu_db_id>0) {
+            String message = HostName+"---Measurement Start, id="+String(imu_db_id)+"____";
             SendUdpMessage(message);
 
             SensorSetup();
             Mesurement(NoOfMes);
-            SendData(id);
+            SendData(imu_db_id);
           } else {
             Serial.println("Imu head data upload failed");
           }
-        Serial.println("--- WAITING FOR NEW START --- ");    
-        message = HostName+"--- WAITING FOR NEW START ---";
+        Serial.println(HostName+"--- WAITING FOR NEW START --- ");    
+        message = HostName+"--- WAITING FOR NEW START ---                          ";
         SendUdpMessage(message); 
         } 
       }
@@ -375,7 +371,8 @@ void SendData(int id){
     Serial.println("file read open failed");
   }
 
-  message = HostName+"---Data Upload Start";
+  time0 = millis();
+  message = HostName+"---Data Upload Start: " +String(time0)+"____";
   SendUdpMessage(message);
 
   String ids;
@@ -388,39 +385,46 @@ void SendData(int id){
   int httpCode;
   String response;
 
-  http.begin(http_data);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   count = 1;
   while (fw.available()) {
+
+    http.begin(http_data);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+    
     icount = 0;
     post = post0;
-    while (fw.available() and icount < 10) {
+    while (fw.available() and icount < 100) {
       flr = fw.readStringUntil(';');
       post = post + flr + ";";
       icount++;
     }
+    Serial.println();
     Serial.print(count);
     Serial.print(" -- post:");
-    Serial.print(post.c_str());
+    Serial.print(post.substring(0, 50).c_str());
     Serial.println("--");
 
     httpCode = http.POST(post.c_str());
     response = http.getString();
-//    http.end();
+    http.end();
 
-    Serial.println();
     Serial.print("HTTP response code ");
     Serial.println(httpCode);
     // http.writeToStream(&Serial);
     Serial.print("HTTP response");
     Serial.println(response);
-
-    message = HostName+"---Data Packet No: "+String(count)+" Http response: "+httpCode+" Script response: "+response;
+    if (httpCode!=200) {
+        http.writeToStream(&Serial);
+    }
+    message = HostName+"---Data Packet No: "+String(count)+" Http response: "+httpCode+" Script response: "+response+"___";
     SendUdpMessage(message);
 
     count++;
   }
   http.end();
+  time1 = millis();
+  message = HostName+"---Data Upload end time: "+String(time1-time0)+"/";
+  SendUdpMessage(message);
 };
 
 int SendImu(char* headID, char* host){
@@ -437,6 +441,7 @@ int SendImu(char* headID, char* host){
   Serial.println(post);
   http.begin(http_imu);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  //http.addHeader("Content-Type", "application/form-data");
   httpCode = http.POST(post.c_str());
   response = http.getString();
   http.end();
