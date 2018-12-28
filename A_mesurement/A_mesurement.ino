@@ -21,8 +21,10 @@
 //const char* password = "Hpwp8enwtczm";
 //char* ssid = "TD924570";
 //char* password = "Qwedcxya";
-char* ssid = "RA22SL";
-char* password = "Sukoro70";
+//char* ssid = "RA22SL";
+//char* password = "Sukoro70";
+char* ssid = "Band-Csik5";
+char* password = "RT-AC66UB1";
 
 // HTTP Post connections
 String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
