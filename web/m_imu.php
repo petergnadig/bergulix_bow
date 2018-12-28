@@ -12,7 +12,7 @@ $data = $dt;
 
 try {
 	$str_conn = "mysql:host=bergulix.dyndns.org:3306;dbname=bx_bow_01";
-	$dbh = new PDO($str_conn, 'msql1', 'Qasde321');
+	$dbh = new PDO($str_conn, 'msql1', 'Qasde321' , array(PDO::ATTR_PERSISTENT => true));
 	$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$dbh->beginTransaction();    	
 } catch (Exception $e) {
