@@ -305,59 +305,18 @@ void SensorSetup(){
 
 void Mesurement(int NopOfMes){
   String message;
-  // Start the SPI Flash Files System
-  SPIFFS.begin();
-    // Start new file, remove old
-  SPIFFS.remove("/index.html");
-  File fw = SPIFFS.open("/index.html", "w");
-  if (!fw) {
-    Serial.println("file write open failed");
-  }
-  
-  // Measurement
+
   Wire.begin();
   time0 = millis();
-  Serial.print("-------Start : ");
-  Serial.println(time0, DEC);
 
-  message = HostName+"---Measurement start time: "+String(time0)+"____";
-  SendUdpMessage(message);
-
-  for (count = 0; count < NoOfMes; count++) {
-    error = MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, 6);
-    time1 = millis();
-    SWAP (accel_t_gyro.reg.x_accel_h, accel_t_gyro.reg.x_accel_l);
-    SWAP (accel_t_gyro.reg.y_accel_h, accel_t_gyro.reg.y_accel_l);
-    SWAP (accel_t_gyro.reg.z_accel_h, accel_t_gyro.reg.z_accel_l);
-    //    SWAP (accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
-    //    SWAP (accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
-    //    SWAP (accel_t_gyro.reg.z_gyro_h, accel_t_gyro.reg.z_gyro_l);
-    // Write data to file
-    fw.print(time1-time0, DEC);
-    fw.print(F(","));
-    fw.print(accel_t_gyro.value.x_accel, DEC);
-    fw.print(F(","));
-    fw.print(accel_t_gyro.value.y_accel, DEC);
-    fw.print(F(","));
-    fw.print(accel_t_gyro.value.z_accel, DEC);
-    // fw.print(F(", "));
-    // fw.print(accel_t_gyro.value.x_gyro, DEC);
-    // fw.print(F(", "));
-    // fw.print(accel_t_gyro.value.y_gyro, DEC);
-    // fw.print(F(", "));
-    // fw.print(accel_t_gyro.value.z_gyro, DEC);
-    fw.print(F(";"));
-    yield();
-  }
-  fw.close();
   time1 = millis();
 
   Serial.print("------ Meres vege ------ ");
   Serial.print("------ Ideje : ");
   Serial.print(time1 - time0, DEC);
   Serial.print("------ Freqvencia : ");
-  Serial.print(count / (time1 - time0), DEC);
-  Serial.println("");
+//  Serial.print(count / (time1 - time0), DEC);
+//  Serial.println("");
 
   message = HostName+"---Measurement end time: "+String(time1-time0);
   SendUdpMessage(message);
@@ -370,14 +329,7 @@ void SendData(int id){
   unsigned long timeu1;
   
   String message;
-  // Start the SPI Flash Files System
-  SPIFFS.begin(); 
-  //Create post requests
-  File fw = SPIFFS.open("/index.html", "r");
-  if (!fw) {
-    Serial.println("file read open failed");
-  }
-
+  
   time0 = millis();
   message = HostName+"---Data Upload Start: " +String(time0)+"____";
   SendUdpMessage(message);
@@ -386,25 +338,19 @@ void SendData(int id){
   ids=String(id);
   
   HTTPClient http;
-  String post0 = "m_id="+ids+"&data=";
+  String post0 = "m_id=100&data=203,2304,16356,-460;204,2384,16324,-588;205,2316,16340,-452;206,2344,16392,-380;207,2392,16368,-260;208,2344,16320,-284;209,2408,16488,-372;210,2392,16348,-392;211,2344,16336,-360;212,2364,16376,-380;";
   String post;
   String flr;
   int httpCode;
   String response;
 
   count = 1;
-  while (fw.available()) {
+  while (count<1000) {
     timeu0 = millis();
     http.begin(http_data);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
     
-    icount = 0;
     post = post0;
-    while (fw.available() and icount < 100) {
-      flr = fw.readStringUntil(';');
-      post = post + flr + ";";
-      icount++;
-    }
     Serial.println();
     Serial.print(count);
     Serial.print(" -- post:");
