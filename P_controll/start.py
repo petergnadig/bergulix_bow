@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#Ver: 2018-12-11 00:19
+#Ver: 2019-01-09 21:30
 
 import socket
 import time
@@ -42,6 +42,14 @@ def main(argv):
 	t=strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
 	if optNo==4:
+
+		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		s.connect(("8.8.8.8", 80))
+		ip = s.getsockname()[0].split('.')
+		broadcastip=ip[0]+"."+ip[1]+"."+ip[2]+".255"
+		print "Broadcast address:",broadcastip
+		s.close()
+
 		# Post header to database - response the headerb id if succeed
 		pstmessage=t+","+bow+","+person+","+lat+","+lon
 		print 'Post message :', pstmessage
@@ -60,8 +68,7 @@ def main(argv):
 			server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 			server.settimeout(0.2)
 			server.bind(("", 37667))
-			server.sendto(udpmessage, ('192.168.9.255', 37666))
-            #server.sendto(udpmessage, ('172.20.10.15', 37666))
+			server.sendto(udpmessage, (broadcastip, 37666))
 			time.sleep(1)
 	else:
 		print 'Hianyzo parameter. Hasznalata:'
