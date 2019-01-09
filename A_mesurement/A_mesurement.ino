@@ -1,36 +1,25 @@
-//V2018-12-28 09:00
+//V2019-01-09 20:00
 
-// #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266mDNS.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiUDP.h>
-
 #include <FS.h>   // Include the SPIFFS library
-
 #include <String.h>
-
 #include <Wire.h>
 #include <mpu6050.h>
 #include <time.h>
 
 #define SWAP(x,y) swap = x; x = y; y = swap
 
-// Wifi Connection Data
-//const char* ssid = "UPC1A97DF3-Bandi";
-//const char* password = "Hpwp8enwtczm";
-//char* ssid = "TD924570";
-//char* password = "Qwedcxya";
-char* ssid = "RA22SL";
-char* password = "Sukoro70";
-//char* ssid = "Band-Csik5";
-//char* password = "RT-AC66UB1";
+// Wifi Connection
+ESP8266WiFiMulti wifiMulti;
 
 // HTTP Post connections
 String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
 String http_imu="http://bergulix.dyndns.org:8100/bow/web/m_imu.php";
 
-int NoOfMes = 5000;
+int NoOfMes = 1000;
 
 typedef union udpservermessage
 {
@@ -111,7 +100,12 @@ void setup() {
 
   
   // Initialise wifi connection
-  wifiConnected = connectWifi(ssid, password);
+  wifiMulti.addAP("TD924570", "Qwedcxya");
+  wifiMulti.addAP("RA22SL", "Sukoro70");
+  wifiMulti.addAP("Band-Csik5", "RT-AC66UB1");
+  wifiMulti.addAP("AndroidGP", "1234567890");
+
+  wifiConnected = connectWifi();
   if (wifiConnected) {
     Serial.print("Broadcast address: ");
     Serial.println(broadcast);
@@ -119,18 +113,9 @@ void setup() {
     }
     
   // Report status as UDP message
-  SendPacket(broadcast, udpPort, HostNameC, sizeof(HostNameC));
-
-
-  // Start the mDNS responder for esp8266.local
-  /*if (MDNS.begin(HostName.c_str())) {
-    Serial.println("mDNS responder started");
-  } else {
-    Serial.println("Error setting up MDNS responder!");
-  }
-  */
-
- 
+  SendPacket(broadcast, udpPort, HostNameC, sizeof(HostNameC)); 
+  Serial.print("Host Name: ");
+  Serial.println(HostName);
 }
 
 void loop() {
@@ -178,31 +163,26 @@ if (wifiConnected) {
 }
 
 // connect to wifi – returns true if successful or false if not
-boolean connectWifi(char* ssid, char* password) {
-  boolean state = true;
+boolean connectWifi() {
   int i = 0;
   IPAddress iplocal;
   IPAddress ipnetmask;
-  WiFi.begin(ssid, password);
-  Serial.println("");
-  Serial.println("Connecting to WiFi");
   IPAddress local;
 
+  Serial.println("");
+  Serial.println("Connecting to WiFi");
+
   // Wait for connection
-  Serial.print("Connecting");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-    if (i > 40) {
-      state = false;
-      break;
-    }
+  while (wifiMulti.run() != WL_CONNECTED and i < 50) { // Wait for the Wi-Fi to connect: scan for Wi-Fi networks, and connect to the strongest of the networks above
+    delay(1000);
     i++;
+    Serial.print("_");
+    Serial.print(i);
   }
-  if (state) {
+  if (wifiMulti.run()) {
     Serial.println("");
     Serial.print("Connected to ");
-    Serial.println(ssid);
+    Serial.println(WiFi.SSID());
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     iplocal=WiFi.localIP();
@@ -216,7 +196,7 @@ boolean connectWifi(char* ssid, char* password) {
     Serial.println("");
     Serial.println("Connection failed.");
   }
-  return state;
+  return wifiMulti.run();
 }
 
 // connect to UDP – returns true if successful or false if not

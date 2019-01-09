@@ -1,9 +1,8 @@
-//V2018-12-28 09:00
-
 // #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266mDNS.h>
-#include <ESP8266HTTPClient.h>
+//#include <ESP8266HTTPClient.h>
+#include "RestClient.h"
 #include <WiFiUDP.h>
 
 #include <FS.h>   // Include the SPIFFS library
@@ -16,19 +15,26 @@
 
 #define SWAP(x,y) swap = x; x = y; y = swap
 
+// Program verziószáma
+String ver = "Version: 2018-12-29 14:00";
+
 // Wifi Connection Data
 //const char* ssid = "UPC1A97DF3-Bandi";
 //const char* password = "Hpwp8enwtczm";
 //char* ssid = "TD924570";
 //char* password = "Qwedcxya";
-char* ssid = "RA22SL";
-char* password = "Sukoro70";
+char* ssid = "PiP";
+char* password = "0123456789";
 //char* ssid = "Band-Csik5";
 //char* password = "RT-AC66UB1";
 
 // HTTP Post connections
-String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
-String http_imu="http://bergulix.dyndns.org:8100/bow/web/m_imu.php";
+char* http_server="bergulix.dyndns.org";
+char* http_data="/bow/web/m_data.php";
+char* http_imu="/bow/web/m_imu.php";
+int http_port=8100;
+
+RestClient client = RestClient(http_server,http_port);
 
 int NoOfMes = 5000;
 
@@ -101,7 +107,8 @@ void setup() {
   Serial.begin(115200);         // Start the Serial communication to send messages to the computer
   delay(10);
   Serial.println('\n');
-
+  Serial.println(ver);
+  
   // Identify the HW address
   ChipId = ESP.getChipId();
   HostName =  String(ChipId, HEX);
@@ -134,12 +141,13 @@ void setup() {
 }
 
 void loop() {
-
 int imu_db_id=0;
 if (wifiConnected) {
     if (udpConnected) {
       //int packetSize = UDP.parsePacket();
-      if (ReadPacket(packetBuffer.reg.message)) {   
+     
+      if (ReadPacket(packetBuffer.reg.message)) {  
+         Serial.print("Eddig jutottam: "); 
         //SendPacket(broadcast, udpPort, replyBuffer,sizeof(replyBuffer));
         if (strcmp(packetBuffer.value.instruction,instructionStart)==0){
           Serial.print("Message received full: ");
@@ -162,8 +170,8 @@ if (wifiConnected) {
             String message = HostName+"---Measurement Start, id="+String(imu_db_id)+"____";
             SendUdpMessage(message);
 
-            SensorSetup();
-            Mesurement(NoOfMes);
+//            SensorSetup();
+//            Mesurement(NoOfMes);
             SendData(imu_db_id);
           } else {
             Serial.println("Imu head data upload failed");
@@ -337,7 +345,6 @@ void SendData(int id){
   String ids;
   ids=String(id);
   
-  HTTPClient http;
   String post0 = "m_id=100&data=203,2304,16356,-460;204,2384,16324,-588;205,2316,16340,-452;206,2344,16392,-380;207,2392,16368,-260;208,2344,16320,-284;209,2408,16488,-372;210,2392,16348,-392;211,2344,16336,-360;212,2364,16376,-380;";
   String post;
   String flr;
@@ -347,8 +354,11 @@ void SendData(int id){
   count = 1;
   while (count<1000) {
     timeu0 = millis();
-    http.begin(http_data);
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    String response = "";
+    char* post0 = "m_id=100&data=203,2304,16356,-460;204,2384,16324,-588;205,2316,16340,-452;206,2344,16392,-380;207,2392,16368,-260;208,2344,16320,-284;209,2408,16488,-372;210,2392,16348,-392;211,2344,16336,-360;212,2364,16376,-380;";
+  
+    int httpCode = client.post("/bow/web/m_data.php", post0 , &response);
     
     post = post0;
     Serial.println();
@@ -356,30 +366,28 @@ void SendData(int id){
     Serial.print(" -- post:");
     Serial.print(post.substring(0, 50).c_str());
     Serial.println("--");
-
-    httpCode = http.POST(post.c_str());
-    response = http.getString();
   
-    //Serial.print("HTTP response code ");
+    /*
+    Serial.print("HTTP response code ");
     //Serial.println(httpCode);
     // http.writeToStream(&Serial);
     //Serial.print("HTTP response");
     //Serial.println(response);
-    if(httpCode == HTTP_CODE_OK) {
+    if(httpCode == 200) {
         String payload = http.getString();
         Serial.println(payload);
         } else {
         Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
+    
     http.end();
-
+    */
     timeu1 = millis();
     message = HostName+" Data Packet No: "+String(count)+" Time: "+String(timeu1-timeu0)+" Http response: "+httpCode+" Script response: "+response+"___";
     SendUdpMessage(message);
 
     count++;
   }
-  http.end();
+  //http.end();
   time1 = millis();
   message = HostName+"---Data Upload end time: "+String(time1-time0)+"/";
   SendUdpMessage(message);
@@ -387,7 +395,7 @@ void SendData(int id){
 
 int SendImu(char* headID, char* host){
   Serial.print("--- IMU Post ---");
-  HTTPClient http;
+  //HTTPClient http;
   String post;
   String flr;
   int httpCode;
@@ -397,12 +405,22 @@ int SendImu(char* headID, char* host){
   post = post+host+",00,"+headID; // a 00 -ba kerül majd az imu config bináris reprezentációja
   Serial.print("Post message:");
   Serial.println(post);
-  http.begin(http_imu);
+ /*
+  http.begin(http_server,http_port,http_imu);
   http.addHeader("Content-Type", "application/x-www-form-urlencoded");
   //http.addHeader("Content-Type", "application/form-data");
   httpCode = http.POST(post.c_str());
   response = http.getString();
   http.end();
+*/
+  response = "";
+  post="data=";
+  post = post+host+",00,"+headID; 
+  char post_array[post.length()+1];
+  post.toCharArray(post_array, post.length()+1);
+  httpCode = client.post(http_imu, post_array , &response);
+ 
+
 
   Serial.println();
   Serial.print("HTTP response code:");

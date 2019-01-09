@@ -61,6 +61,7 @@ def main(argv):
 			server.settimeout(0.2)
 			server.bind(("", 37667))
 			server.sendto(udpmessage, ('192.168.9.255', 37666))
+            #server.sendto(udpmessage, ('172.20.10.15', 37666))
 			time.sleep(1)
 	else:
 		print 'Hianyzo parameter. Hasznalata:'
