@@ -19,12 +19,12 @@ def main(argv):
 	try:
 	  opts, args = getopt.getopt(argv,"hb:p:a:o:",["bow=","person=","lat=","lon="])
 	except getopt.GetoptError:
-	  print 'start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>'
+	  print ('start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>')
 	  sys.exit(2)
 	optNo=0
 	for opt, arg in opts:
 	  if opt == '-h':
-	     print 'start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>'
+	     print ('start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>')
 	     sys.exit()
 	  elif opt in ("-b", "--bow"):
 	     bow = arg
@@ -47,22 +47,22 @@ def main(argv):
 		s.connect(("8.8.8.8", 80))
 		ip = s.getsockname()[0].split('.')
 		broadcastip=ip[0]+"."+ip[1]+"."+ip[2]+".255"
-		print "Broadcast address:",broadcastip
+		print ("Broadcast address:",broadcastip)
 		s.close()
 
 		# Post header to database - response the headerb id if succeed
 		pstmessage=t+","+bow+","+person+","+lat+","+lon
-		print 'Post message :', pstmessage
+		print ('Post message :', pstmessage)
 		payload = {'data': pstmessage}
 
 		r = requests.post(url, data=payload)
-		print 'response: ',r.text
-		print 'status: ',r.status_code
+		print ('response: ',r.text)
+		print ('status: ',r.status_code)
 
 		if r.status_code==200 and r.text[0:2]=="OK":
 
 			udpmessage = b"Start    "+chr(0)+t+chr(0)+" "+r.text[3:99]+chr(0)
-			print 'UDP  message :', udpmessage+"@@@"
+			print ('UDP  message :', udpmessage+"@@@")
 			# Init udp
 			server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 			server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -71,8 +71,8 @@ def main(argv):
 			server.sendto(udpmessage, (broadcastip, 37666))
 			time.sleep(1)
 	else:
-		print 'Hianyzo parameter. Hasznalata:'
-		print 'start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>'
+		print ('Hianyzo parameter. Hasznalata:')
+		print ('start.py  -b <bowid> -p <personid> -a <latitude decimal> -o <longtude decimal>')
 
 if __name__ == "__main__":
    main(sys.argv[1:])
