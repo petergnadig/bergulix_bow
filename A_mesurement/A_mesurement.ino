@@ -1,8 +1,9 @@
-//V2019-01-09 20:00
+//V2019-02-13 23:00
 
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
-#include <ESP8266HTTPClient.h>
+//#include <ESP8266WiFiMulti.h>
+//#include <ESP8266HTTPClient.h>
+#include "RestClient.h"
 #include <WiFiUDP.h>
 #include <FS.h>   // Include the SPIFFS library
 #include <String.h>
@@ -12,14 +13,25 @@
 
 #define SWAP(x,y) swap = x; x = y; y = swap
 
+#define SendDataNo 100
+#define SendDataBuff 4000 // kb 40x SendDataNo!!!
+
+// Program verziószáma
+String ver = "Version: 2018-02-13 23:00";
+
 // Wifi Connection
-ESP8266WiFiMulti wifiMulti;
+//ESP8266WiFiMulti wifiMulti;
+char* ssid = "RA22_DF";
+char* password = "Sukoro70";
 
 // HTTP Post connections
-String http_data="http://bergulix.dyndns.org:8100/bow/web/m_data.php";
-String http_imu="http://bergulix.dyndns.org:8100/bow/web/m_imu.php";
+char* http_server="bergulix.dyndns.org";
+char* http_data="/bow/web/m_data.php";
+char* http_imu="/bow/web/m_imu.php";
+int http_port=8100;
+RestClient client = RestClient(http_server,http_port);
 
-int NoOfMes = 1000;
+int NoOfMes = 500;
 
 typedef union udpservermessage
 {
@@ -90,6 +102,7 @@ void setup() {
   Serial.begin(115200);         // Start the Serial communication to send messages to the computer
   delay(10);
   Serial.println('\n');
+  Serial.println(ver);
 
   // Identify the HW address
   ChipId = ESP.getChipId();
@@ -100,12 +113,13 @@ void setup() {
 
   
   // Initialise wifi connection
-  wifiMulti.addAP("TD924570", "Qwedcxya");
-  wifiMulti.addAP("RA22SL", "Sukoro70");
-  wifiMulti.addAP("Band-Csik5", "RT-AC66UB1");
-  wifiMulti.addAP("AndroidGP", "1234567890");
+    //wifiMulti.addAP("TD924570", "Qwedcxya");
+    // wifiMulti.addAP("RA22SL", "Sukoro70");
+    //wifiMulti.addAP("Band-Csik5", "RT-AC66UB1");
+    //wifiMulti.addAP("AndroidGP", "1234567890");
+  WiFi.mode(WIFI_STA);
 
-  wifiConnected = connectWifi();
+  wifiConnected = connectWifi(ssid, password);
   if (wifiConnected) {
     Serial.print("Broadcast address: ");
     Serial.println(broadcast);
@@ -114,8 +128,7 @@ void setup() {
     
   // Report status as UDP message
   SendPacket(broadcast, udpPort, HostNameC, sizeof(HostNameC)); 
-  Serial.print("Host Name: ");
-  Serial.println(HostName);
+  Serial.println("INIT END ");
 }
 
 void loop() {
@@ -162,8 +175,9 @@ if (wifiConnected) {
   }
 }
 
-// connect to wifi – returns true if successful or false if not
-boolean connectWifi() {
+// Connect to wifi – returns true if successful or false if not
+boolean connectWifi(char* ssid, char* password) {
+  boolean state = true;
   int i = 0;
   IPAddress iplocal;
   IPAddress ipnetmask;
@@ -173,13 +187,26 @@ boolean connectWifi() {
   Serial.println("Connecting to WiFi");
 
   // Wait for connection
-  while (wifiMulti.run() != WL_CONNECTED and i < 50) { // Wait for the Wi-Fi to connect: scan for Wi-Fi networks, and connect to the strongest of the networks above
-    delay(1000);
+  /*while (wifiMulti.run() != WL_CONNECTED and i < 500) { // Wait for the Wi-Fi to connect: scan for Wi-Fi networks, and connect to the strongest of the networks above
+    delay(1);
     i++;
     Serial.print("_");
     Serial.print(i);
   }
-  if (wifiMulti.run()) {
+  */
+  Serial.print("Connecting");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    if (i > 40) {
+      state = false;
+      break;
+    }
+    i++;
+  }
+  
+  if (state) {
     Serial.println("");
     Serial.print("Connected to ");
     Serial.println(WiFi.SSID());
@@ -196,7 +223,8 @@ boolean connectWifi() {
     Serial.println("");
     Serial.println("Connection failed.");
   }
-  return wifiMulti.run();
+  //return wifiMulti.run();
+  return state;
 }
 
 // connect to UDP – returns true if successful or false if not
@@ -332,7 +360,7 @@ void Mesurement(int NopOfMes){
   fw.close();
   time1 = millis();
 
-  Serial.print("------ Meres vege ------ ");
+  Serial.println("------ Meres vege ------ ");
   Serial.print("------ Ideje : ");
   Serial.print(time1 - time0, DEC);
   Serial.print("------ Freqvencia : ");
@@ -344,15 +372,15 @@ void Mesurement(int NopOfMes){
 };
 
 void SendData(int id){
+  Serial.println("-- Send data START");
   unsigned long time0;
   unsigned long time1;
   unsigned long timeu0;
-  unsigned long timeu1;
-  
+  unsigned long timeu1; 
   String message;
+  
   // Start the SPI Flash Files System
   SPIFFS.begin(); 
-  //Create post requests
   File fw = SPIFFS.open("/index.html", "r");
   if (!fw) {
     Serial.println("file read open failed");
@@ -365,47 +393,26 @@ void SendData(int id){
   String ids;
   ids=String(id);
   
-  HTTPClient http;
+  ///// HTTPClient http;
   String post0 = "m_id="+ids+"&data=";
   String post;
+  char postA[3000];
   String flr;
   int httpCode;
-  String response;
-
+  String response="";
+  
+  // Serial.println("Data read start");
   count = 1;
   while (fw.available()) {
     timeu0 = millis();
-    http.begin(http_data);
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-    
     icount = 0;
     post = post0;
-    while (fw.available() and icount < 100) {
+    while (fw.available() and icount < SendDataNo) {
       flr = fw.readStringUntil(';');
       post = post + flr + ";";
       icount++;
     }
-    Serial.println();
-    Serial.print(count);
-    Serial.print(" -- post:");
-    Serial.print(post.substring(0, 50).c_str());
-    Serial.println("--");
-
-    httpCode = http.POST(post.c_str());
-    response = http.getString();
-  
-    //Serial.print("HTTP response code ");
-    //Serial.println(httpCode);
-    // http.writeToStream(&Serial);
-    //Serial.print("HTTP response");
-    //Serial.println(response);
-    if(httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        Serial.println(payload);
-        } else {
-        Serial.printf("[HTTP] POST... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
-    http.end();
+    SendHttp(post, http_data);
 
     timeu1 = millis();
     message = HostName+" Data Packet No: "+String(count)+" Time: "+String(timeu1-timeu0)+" Http response: "+httpCode+" Script response: "+response+"___";
@@ -413,7 +420,6 @@ void SendData(int id){
 
     count++;
   }
-  http.end();
   time1 = millis();
   message = HostName+"---Data Upload end time: "+String(time1-time0)+"/";
   SendUdpMessage(message);
@@ -421,37 +427,37 @@ void SendData(int id){
 
 int SendImu(char* headID, char* host){
   Serial.print("--- IMU Post ---");
-  HTTPClient http;
   String post;
-  String flr;
-  int httpCode;
-  String response;
-
-  post="data=";
+  post = "data=";
   post = post+host+",00,"+headID; // a 00 -ba kerül majd az imu config bináris reprezentációja
-  Serial.print("Post message:");
-  Serial.println(post);
-  http.begin(http_imu);
-  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  //http.addHeader("Content-Type", "application/form-data");
-  httpCode = http.POST(post.c_str());
-  response = http.getString();
-  http.end();
+  return SendHttp(post, http_imu);
+};
 
-  Serial.println();
-  Serial.print("HTTP response code:");
-  Serial.println(httpCode);
-  Serial.print("HTTP response:");
+
+int SendHttp(String& post, char* httpaddr){
+
+  int httpCode;
+  String response="";
+  char post_array[post.length()+1];
+  post.toCharArray(post_array, post.length()+1);
+  httpCode = client.post(httpaddr, post_array , &response);
+
+  Serial.print("Post message:");
+  Serial.print(post);
+  Serial.print(httpaddr);
+  Serial.print(" response code:");
+  Serial.print(httpCode);
+  Serial.print(" response text:");
   Serial.println(response);
-  Serial.print("IMU ID:");
-  Serial.println(response.substring(3,99).toInt());
-  Serial.print("Database status:");
-  Serial.println(response.substring(0,0));
+
   
   if (httpCode==200 and response.substring(0,2)=="OK") {
-    return response.substring(3,99).toInt();
+      Serial.print("[HTTP] POST OK, response:");
+      Serial.println(response);
+      return response.substring(3,99).toInt();
   } else {
-    return -1;
+      Serial.print("[HTTP] POST... failed, error:");
+      Serial.println(response);
+      return -1;
   }
- 
 };

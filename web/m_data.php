@@ -45,9 +45,12 @@ try {
 		}
 	}
 
-	$dbh->commit();
-
-	echo "OK";
+    $dbh->commit();
+    
+    //print "OK ",$index;
+    print_r (sprintf(
+      'OK %s',$index
+    ));
 
 } catch (Exception $e) {
 	$dbh->rollBack();
