@@ -14,7 +14,7 @@
 #define SWAP(x,y) swap = x; x = y; y = swap
 
 #define SendDataNo 100
-#define SendDataBuff 4000 // kb 40x SendDataNo!!!
+//#define SendDataBuff 4000 // kb 40x SendDataNo!!!
 
 // Program verziószáma
 String ver = "Version: 2018-02-13 23:00";
@@ -319,7 +319,7 @@ void Mesurement(int NopOfMes){
   SPIFFS.remove("/index.html");
   File fw = SPIFFS.open("/index.html", "w");
   if (!fw) {
-    Serial.println("file write open failed");
+    Serial.println("File write open failed");
   }
   
   // Measurement
@@ -443,7 +443,7 @@ int SendHttp(String& post, char* httpaddr){
   httpCode = client.post(httpaddr, post_array , &response);
 
   Serial.print("Post message:");
-  Serial.print(post);
+  Serial.println(post);
   Serial.print(httpaddr);
   Serial.print(" response code:");
   Serial.print(httpCode);
