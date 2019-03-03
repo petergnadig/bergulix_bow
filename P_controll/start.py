@@ -60,9 +60,9 @@ def main(argv):
 		print ('status: ',r.status_code)
 
 		if r.status_code==200 and r.text[0:2]=="OK":
-
-			udpmessage = b"Start    "+chr(0)+t+chr(0)+" "+r.text[3:99]+chr(0)
-			print ('UDP  message :', udpmessage+"@@@")
+			udpmessage_str = "Start    "+chr(0)+t+chr(0)+" "+r.text[3:99]+chr(0)
+			udpmessage=udpmessage_str.encode('utf-8')
+			print ('UDP  message :', udpmessage+b"@@@")
 			# Init udp
 			server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 			server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
