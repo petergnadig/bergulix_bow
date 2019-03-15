@@ -1,9 +1,9 @@
-//V2019-02-13 23:00
+//V2019-03-03 09:00
 
 #include <ESP8266WiFi.h>
 //#include <ESP8266WiFiMulti.h>
 //#include <ESP8266HTTPClient.h>
-#include "RestClient.h"
+#include "RestClient.h" 
 #include <WiFiUDP.h>
 #include <FS.h>   // Include the SPIFFS library
 #include <String.h>
@@ -21,8 +21,8 @@ String ver = "Version: 2018-02-13 23:00";
 
 // Wifi Connection
 //ESP8266WiFiMulti wifiMulti;
-char* ssid = "RA22_DF";
-char* password = "Sukoro70";
+char* ssid = "Brgx";
+char* password = "0123456789";
 
 // HTTP Post connections
 char* http_server="bergulix.dyndns.org";

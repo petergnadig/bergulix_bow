@@ -42,10 +42,13 @@ def main(argv):
 	t=strftime("%Y-%m-%d %H:%M:%S", gmtime())
 
 	if optNo==4:
-
+		print ("Start connection")
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		print ("Connect 8.8.8.8")
 		s.connect(("8.8.8.8", 80))
+		print ("Get answer")
 		ip = s.getsockname()[0].split('.')
+		print ("Calculate broadcast address")
 		broadcastip=ip[0]+"."+ip[1]+"."+ip[2]+".255"
 		print ("Broadcast address:",broadcastip)
 		s.close()
