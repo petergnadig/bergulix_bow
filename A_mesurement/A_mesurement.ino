@@ -1,14 +1,12 @@
-//V2019-03-03 09:00
-
 #include <ESP8266WiFi.h>
 //#include <ESP8266WiFiMulti.h>
 //#include <ESP8266HTTPClient.h>
-#include "RestClient.h" 
+#include "src\ESP8266RestClient\RestClient.h" // https://github.com/fabianofranca/ESP8266RestClient 
 #include <WiFiUDP.h>
 #include <FS.h>   // Include the SPIFFS library
 #include <String.h>
-#include <Wire.h>
-#include <mpu6050.h>
+//#include <Wire.h>
+#include "mpu6050.h" // Local file to include!
 #include <time.h>
 
 #define SWAP(x,y) swap = x; x = y; y = swap
@@ -17,11 +15,11 @@
 //#define SendDataBuff 4000 // kb 40x SendDataNo!!!
 
 // Program verziószáma
-String ver = "Version: 2018-02-13 23:00";
+String ver = "Version: 2019-04-01 23:00";
 
 // Wifi Connection
 //ESP8266WiFiMulti wifiMulti;
-char* ssid = "Brgx";
+char* ssid = "Brglx";
 char* password = "0123456789";
 
 // HTTP Post connections
@@ -288,9 +286,9 @@ void SensorSetup(){
   // MPU-6050 setup & read setup
   uint8_t mpu_config;
   uint8_t mpu_accel;
-  error = MPU6050_read (MPU6050_CONFIG,(uint8_t *) &mpu_config, 1);
+  error = MPU6050_read (MPU6050_CONFIG,(uint8_t *) &mpu_config, (bool) 1);
   Serial.println(error, BIN);
-  error = MPU6050_read (MPU6050_ACCEL_CONFIG, (uint8_t *) &mpu_accel,  1);
+  error = MPU6050_read (MPU6050_ACCEL_CONFIG, (uint8_t *) &mpu_accel,  (bool) 1);
   Serial.println(error, BIN);
   uint8_t mpu_config_dlpf = mpu_config & 0b00000111;
   uint8_t mpu_config_esyn = (mpu_config & 0b00111000) >> 3;
