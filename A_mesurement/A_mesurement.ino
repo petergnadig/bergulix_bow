@@ -19,7 +19,7 @@ String ver = "Version: 2019-04-01 23:00";
 
 // Wifi Connection
 //ESP8266WiFiMulti wifiMulti;
-char* ssid = "Brglx";
+char* ssid = "brglx";
 char* password = "0123456789";
 
 // HTTP Post connections
@@ -164,8 +164,8 @@ if (wifiConnected) {
           } else {
             Serial.println("Imu head data upload failed");
           }
-        Serial.println(HostName+"--- WAITING FOR NEW START --- ");    
-        message = HostName+"--- WAITING FOR NEW START ---                          ";
+        Serial.println(HostName+" WAITING FOR NEW START !!!!!!!!");    
+        message = HostName+" WAITING FOR NEW START !!!!!!!!";
         SendUdpMessage(message); 
         } 
       }
@@ -424,7 +424,7 @@ void SendData(int id){
 };
 
 int SendImu(char* headID, char* host){
-  Serial.print("--- IMU Post ---");
+  Serial.println("--- IMU Post ---");
   String post;
   post = "data=";
   post = post+host+",00,"+headID; // a 00 -ba kerül majd az imu config bináris reprezentációja
@@ -433,7 +433,7 @@ int SendImu(char* headID, char* host){
 
 
 int SendHttp(String& post, char* httpaddr){
-
+  RestClient client = RestClient(http_server,http_port); // toDo: Itt vagy az elején kell lennie?? Szerintem ha az elején van, akkor nem jut el ide az objektum...
   int httpCode;
   String response="";
   char post_array[post.length()+1];
@@ -441,20 +441,20 @@ int SendHttp(String& post, char* httpaddr){
   httpCode = client.post(httpaddr, post_array , &response);
 
   Serial.print("Post message:");
-  Serial.println(post);
-  Serial.print(httpaddr);
-  Serial.print(" response code:");
-  Serial.print(httpCode);
-  Serial.print(" response text:");
+  Serial.println(post_array);
+  Serial.print("Http Address:");
+  Serial.println(httpaddr);
+  Serial.print(" Response code:");
+  Serial.println(httpCode);
+  Serial.print(" Response text:");
   Serial.println(response);
 
-  
   if (httpCode==200 and response.substring(0,2)=="OK") {
       Serial.print("[HTTP] POST OK, response:");
       Serial.println(response);
       return response.substring(3,99).toInt();
   } else {
-      Serial.print("[HTTP] POST... failed, error:");
+      Serial.print("[HTTP] POST failed, error:");
       Serial.println(response);
       return -1;
   }
