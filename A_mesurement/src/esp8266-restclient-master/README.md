@@ -1,6 +1,10 @@
-# RestClient for ESP8266
+# RestClient for Arduino ESP8266 WiFi modules
 
-HTTP Request library for ESP8266.
+HTTP Request library for Arduino and the ESP8266 WiFi SOC modules
+
+This library now supports SSL!  To use with SSL, you need to include the SHA1 fingerprint of the certificate of the site you are connecting to.  You can get this by using a desktop browser and inspecting the SSL cert used at the site.  Please note: this is FRAGILE, if the site updates their SSL, your code will break.  But, there is not enough memory on the ESP8266 to store all the rool certs, so this is a working method.  Se the example below.
+
+This library is derived almost entirely from the great work done here: https://github.com/csquared/arduino-restclient
 
 # Install
 
@@ -10,15 +14,13 @@ where `~/Documents/Arduino` is your sketchbook directory.
     > cd ~/Documents/Arduino
     > mkdir libraries
     > cd libraries
-    > git clone https://github.com/fabianofranca/ESP8266RestClient.git ESP8266RestClient
+    > git clone https://github.com/dakaz/esp8266-restclient.git RestClient
 
 # Usage
 
 ### Include
 
-```c++
-#include "RestClient.h"
-```
+You need to have the `ESP8266` board support already included.
 
 ### RestClient(host/ip, [port])
 
@@ -34,16 +36,20 @@ Use a local IP and an explicit port:
 RestClient client = RestClient("192.168.1.50",5000);
 ```
 
-### begin()
-
-Sets up WiFi connection
-
+Use a local IP, an explicit port to an SSL site and (must include the 1 to turn on SSL):
 ```c++
-  client.begin("ssid", "password");
+RestClient client = RestClient("www.kudoso.com",443, 1);
 ```
 
-Note: you can have multiple RestClient objects but only need to call
-this once.
+Use a local IP, an explicit port to an SSL site and verify the certificate with its fingerprint:
+```c++
+RestClient client = RestClient("www.kudoso.com",443, "EE 16 77 79 55 58 92 46 FB 18 40 99 2E 17 7E AB 32 0A 4A 88");
+```
+
+### dhcp()
+
+Sets up `EthernetClient` with a mac address of `DEADBEEFFEED`. Returns `true` or `false` to indicate if setting up DHCP
+was successful or not
 
 ## RESTful methods
 
@@ -102,7 +108,7 @@ int statusCode = client.del("/", &response);
 
 I test every way of calling the library (against a public heroku app)[https://github.com/csquared/arduino-http-test].
 
-You can find the file in File->Examples->ESP8266RestClient->full_test_suite
+You can find the file in File->Examples->RestClient->full_test_suite
 
 ## Debug Mode
 
@@ -116,4 +122,6 @@ Everything happening in the client will get printed to the Serial port.
 
 # Thanks
 
-[csquared](https://github.com/csquared) For creating this greate and simple library for Arduino
+[ricardochimal](https://github.com/ricardochimal) For all his c++ help.  Couldn't have done this without you!
+
+[theycallmeswift](https://github.com/theycallmeswift) Helping incept and debug v1.0
