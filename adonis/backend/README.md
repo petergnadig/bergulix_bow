@@ -1,3 +1,11 @@
+Telepítendő:
+
+node.js https://nodejs.org/en/ 
+
+Adonis:
+npm i -g @adonisjs/cli
+
+
 Start:
 
 cd %userprofile%\Documents\dev\bergulix_bow\adonis\backend
