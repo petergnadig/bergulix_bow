@@ -1,3 +1,10 @@
+Start:
+
+cd %userprofile%\Documents\dev\bergulix_bow\adonis\backend
+adonis serve --dev
+
+
+
 # Adonis fullstack application
 
 This is the fullstack boilerplate for AdonisJs, it comes pre-configured with.
